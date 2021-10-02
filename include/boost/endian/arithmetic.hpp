@@ -28,11 +28,8 @@
 #endif
 
 #include <boost/endian/buffers.hpp>
-#include <boost/core/scoped_enum.hpp>
-#include <boost/static_assert.hpp>
-#include <boost/cstdint.hpp>
-#include <boost/config.hpp>
-#include <boost/config/workaround.hpp>
+#include <boost/endian/detail/cstdint.hpp>
+#include <boost/endian/detail/static_assert.hpp>
 #include <iosfwd>
 #include <climits>
 
@@ -50,11 +47,6 @@
 #   define BOOST_ENDIAN_DEFAULT_CONSTRUCT = default;  // C++0x
 # endif
 
-// g++ pre-4.6 does not support unrestricted unions, but we have no Config macro for that
-# if (defined(BOOST_NO_CXX11_DEFAULTED_FUNCTIONS) || BOOST_WORKAROUND(BOOST_GCC, < 40600)) && defined(BOOST_ENDIAN_FORCE_PODNESS)
-#   define BOOST_ENDIAN_NO_CTORS
-# endif
-
 # ifndef BOOST_ENDIAN_EXPLICIT_CTORS
 #   define BOOST_ENDIAN_EXPLICIT_OPT
 # else
@@ -68,8 +60,8 @@ namespace boost
 namespace endian
 {
 
-  template <BOOST_SCOPED_ENUM(order) Order, class T, std::size_t n_bits,
-    BOOST_SCOPED_ENUM(align) Align = align::no>
+  template <enum order Order, class T, std::size_t n_bits,
+    enum align Align = align::no>
       class endian_arithmetic;
 
   // big endian signed integer aligned types
@@ -175,8 +167,8 @@ namespace endian
 
 //----------------------------------  end synopsis  ------------------------------------//
 
-template <BOOST_SCOPED_ENUM(order) Order, class T, std::size_t n_bits,
-    BOOST_SCOPED_ENUM(align) Align>
+template <enum order Order, class T, std::size_t n_bits,
+    enum align Align>
 class endian_arithmetic
 {
 private:
@@ -199,135 +191,135 @@ public:
 
     endian_arithmetic() BOOST_ENDIAN_DEFAULT_CONSTRUCT
 
-    BOOST_ENDIAN_EXPLICIT_OPT endian_arithmetic( T val ) BOOST_NOEXCEPT: buf_( val )
+    BOOST_ENDIAN_EXPLICIT_OPT endian_arithmetic( T val ) noexcept: buf_( val )
     {
     }
 
 #endif
 
-    endian_arithmetic& operator=( T val ) BOOST_NOEXCEPT
+    endian_arithmetic& operator=( T val ) noexcept
     {
         buf_ = val;
         return *this;
     }
 
-    value_type value() const BOOST_NOEXCEPT
+    value_type value() const noexcept
     {
         return buf_.value();
     }
 
-    unsigned char const * data() const BOOST_NOEXCEPT
+    unsigned char const * data() const noexcept
     {
         return buf_.data();
     }
 
-    unsigned char * data() BOOST_NOEXCEPT
+    unsigned char * data() noexcept
     {
         return buf_.data();
     }
 
-    operator value_type() const BOOST_NOEXCEPT
+    operator value_type() const noexcept
     {
         return this->value();
     }
 
-    operator buffer_type& () BOOST_NOEXCEPT
+    operator buffer_type& () noexcept
     {
         return buf_;
     }
 
-    operator buffer_type const& () BOOST_NOEXCEPT
+    operator buffer_type const& () noexcept
     {
         return buf_;
     }
 
     // operators
 
-    T operator+() const BOOST_NOEXCEPT
+    T operator+() const noexcept
     {
         return this->value();
     }
 
-    endian_arithmetic& operator+=( T y ) BOOST_NOEXCEPT
+    endian_arithmetic& operator+=( T y ) noexcept
     {
         *this = static_cast<T>( this->value() + y );
         return *this;
     }
 
-    endian_arithmetic& operator-=( T y ) BOOST_NOEXCEPT
+    endian_arithmetic& operator-=( T y ) noexcept
     {
         *this = static_cast<T>( this->value() - y );
         return *this;
     }
 
-    endian_arithmetic& operator*=( T y ) BOOST_NOEXCEPT
+    endian_arithmetic& operator*=( T y ) noexcept
     {
         *this = static_cast<T>( this->value() * y );
         return *this;
     }
 
-    endian_arithmetic& operator/=( T y ) BOOST_NOEXCEPT
+    endian_arithmetic& operator/=( T y ) noexcept
     {
         *this = static_cast<T>( this->value() / y );
         return *this;
     }
 
-    endian_arithmetic& operator%=( T y ) BOOST_NOEXCEPT
+    endian_arithmetic& operator%=( T y ) noexcept
     {
         *this = static_cast<T>( this->value() % y );
         return *this;
     }
 
-    endian_arithmetic& operator&=( T y ) BOOST_NOEXCEPT
+    endian_arithmetic& operator&=( T y ) noexcept
     {
         *this = static_cast<T>( this->value() & y );
         return *this;
     }
 
-    endian_arithmetic& operator|=( T y ) BOOST_NOEXCEPT
+    endian_arithmetic& operator|=( T y ) noexcept
     {
         *this = static_cast<T>( this->value() | y );
         return *this;
     }
 
-    endian_arithmetic& operator^=( T y ) BOOST_NOEXCEPT
+    endian_arithmetic& operator^=( T y ) noexcept
     {
         *this = static_cast<T>( this->value() ^ y );
         return *this;
     }
 
-    endian_arithmetic& operator<<=( T y ) BOOST_NOEXCEPT
+    endian_arithmetic& operator<<=( T y ) noexcept
     {
         *this = static_cast<T>( this->value() << y );
         return *this;
     }
 
-    endian_arithmetic& operator>>=( T y ) BOOST_NOEXCEPT
+    endian_arithmetic& operator>>=( T y ) noexcept
     {
         *this = static_cast<T>( this->value() >> y );
         return *this;
     }
 
-    endian_arithmetic& operator++() BOOST_NOEXCEPT
+    endian_arithmetic& operator++() noexcept
     {
         *this += 1;
         return *this;
     }
 
-    endian_arithmetic& operator--() BOOST_NOEXCEPT
+    endian_arithmetic& operator--() noexcept
     {
         *this -= 1;
         return *this;
     }
 
-    endian_arithmetic operator++(int) BOOST_NOEXCEPT
+    endian_arithmetic operator++(int) noexcept
     {
         endian_arithmetic tmp( *this );
         *this += 1;
         return tmp;
     }
 
-    endian_arithmetic operator--(int) BOOST_NOEXCEPT
+    endian_arithmetic operator--(int) noexcept
     {
         endian_arithmetic tmp( *this );
         *this -= 1;

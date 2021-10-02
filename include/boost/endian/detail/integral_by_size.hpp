@@ -6,8 +6,7 @@
 // Distributed under the Boost Software License, Version 1.0.
 // http://www.boost.org/LICENSE_1_0.txt
 
-#include <boost/cstdint.hpp>
-#include <boost/config.hpp>
+#include <boost/endian/detail/cstdint.hpp>
 #include <cstddef>
 
 namespace boost
@@ -40,15 +39,6 @@ template<> struct integral_by_size<8>
 {
     typedef uint64_t type;
 };
-
-#if defined(BOOST_HAS_INT128)
-
-template<> struct integral_by_size<16>
-{
-    typedef uint128_type type;
-};
-
-#endif
 
 } // namespace detail
 } // namespace endian

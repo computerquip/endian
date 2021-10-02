@@ -27,13 +27,10 @@
 # pragma warning(disable: 4127)  // conditional expression is constant
 #endif
 
+#include <boost/endian/detail/cstdint.hpp>
 #include <boost/endian/detail/endian_store.hpp>
 #include <boost/endian/detail/endian_load.hpp>
-#include <boost/core/scoped_enum.hpp>
-#include <boost/static_assert.hpp>
-#include <boost/cstdint.hpp>
-#include <boost/config.hpp>
-#include <boost/config/workaround.hpp>
+#include <boost/endian/detail/static_assert.hpp>
 #include <iosfwd>
 #include <climits>
 #include <cstring>
@@ -46,16 +43,7 @@
 #   error Platforms with CHAR_BIT != 8 are not supported
 # endif
 
-# ifdef BOOST_NO_CXX11_DEFAULTED_FUNCTIONS
-#   define BOOST_ENDIAN_DEFAULT_CONSTRUCT {}          // C++03
-# else
-#   define BOOST_ENDIAN_DEFAULT_CONSTRUCT = default;  // C++0x
-# endif
-
-// g++ pre-4.6 does not support unrestricted unions, but we have no Config macro for that
-# if (defined(BOOST_NO_CXX11_DEFAULTED_FUNCTIONS) || BOOST_WORKAROUND(BOOST_GCC, < 40600)) && defined(BOOST_ENDIAN_FORCE_PODNESS)
-#   define BOOST_ENDIAN_NO_CTORS
-# endif
+#define BOOST_ENDIAN_DEFAULT_CONSTRUCT = default;
 
 //----------------------------------  synopsis  ----------------------------------------//
 
@@ -64,15 +52,14 @@ namespace boost
 namespace endian
 {
 
-  BOOST_SCOPED_ENUM_START(align)
-  {no, yes
-#   ifdef BOOST_ENDIAN_DEPRECATED_NAMES
-      , unaligned = no, aligned = yes
-#   endif
-  }; BOOST_SCOPED_ENUM_END
+  enum class align
+  {
+    no,
+    yes
+  };
 
-  template <BOOST_SCOPED_ENUM(order) Order, class T, std::size_t n_bits,
-    BOOST_SCOPED_ENUM(align) A = align::no>
+  template <enum order Order, class T, std::size_t n_bits,
+    enum align A = align::no>
       class endian_buffer;
 
   // aligned big endian signed integer buffers
@@ -177,8 +164,8 @@ namespace endian
   typedef endian_buffer<order::native, double, 64, align::no>   native_float64_buf_t;
 
   // Stream inserter
-  template <class charT, class traits, BOOST_SCOPED_ENUM(order) Order, class T,
-    std::size_t n_bits, BOOST_SCOPED_ENUM(align) A>
+  template <class charT, class traits, enum order Order, class T,
+    std::size_t n_bits, enum align A>
   std::basic_ostream<charT, traits>&
     operator<<(std::basic_ostream<charT, traits>& os,
       const endian_buffer<Order, T, n_bits, A>& x)
@@ -187,8 +174,8 @@ namespace endian
   }
 
   // Stream extractor
-  template <class charT, class traits, BOOST_SCOPED_ENUM(order) Order, class T,
-    std::size_t n_bits, BOOST_SCOPED_ENUM(align) A>
+  template <class charT, class traits, enum order Order, class T,
+    std::size_t n_bits, enum align A>
   std::basic_istream<charT, traits>&
     operator>>(std::basic_istream<charT, traits>& is,
       endian_buffer<Order, T, n_bits, A>& x)
@@ -215,14 +202,14 @@ namespace endian
 
 //  unaligned endian_buffer specialization
 
-template< BOOST_SCOPED_ENUM(order) Order, class T, std::size_t n_bits >
+template< enum order Order, class T, std::size_t n_bits >
 class endian_buffer<Order, T, n_bits, align::no>
 {
 #ifdef BOOST_ENDIAN_NO_CTORS
 public:
 #endif
 
-    BOOST_STATIC_ASSERT( (n_bits/8)*8 == n_bits );
+    BOOST_ENDIAN_STATIC_ASSERT( (n_bits/8)*8 == n_bits );
 
     unsigned char value_[ n_bits / 8 ];
 
@@ -234,30 +221,30 @@ public:
 
     endian_buffer() BOOST_ENDIAN_DEFAULT_CONSTRUCT
 
-    explicit endian_buffer( T val ) BOOST_NOEXCEPT
+    explicit endian_buffer( T val ) noexcept
     {
         boost::endian::endian_store<T, n_bits / 8, Order>( value_, val );
     }
 
 #endif
 
-    endian_buffer& operator=( T val ) BOOST_NOEXCEPT
+    endian_buffer& operator=( T val ) noexcept
     {
         boost::endian::endian_store<T, n_bits / 8, Order>( value_, val );
         return *this;
     }
 
-    value_type value() const BOOST_NOEXCEPT
+    value_type value() const noexcept
     {
         return boost::endian::endian_load<T, n_bits / 8, Order>( value_ );
     }
 
-    unsigned char const * data() const BOOST_NOEXCEPT
+    unsigned char const * data() const noexcept
     {
         return value_;
     }
 
-    unsigned char * data() BOOST_NOEXCEPT
+    unsigned char * data() noexcept
     {
         return value_;
     }
@@ -267,13 +254,13 @@ public:
 
 // aligned endian_buffer specialization
 
-template< BOOST_SCOPED_ENUM(order) Order, class T, std::size_t n_bits >
+template< enum order Order, class T, std::size_t n_bits >
 class endian_buffer<Order, T, n_bits, align::yes>
 {
 private:
 
-    BOOST_STATIC_ASSERT( (n_bits/8)*8 == n_bits );
-    BOOST_STATIC_ASSERT( sizeof(T) == n_bits/8 );
+    BOOST_ENDIAN_STATIC_ASSERT( (n_bits/8)*8 == n_bits );
+    BOOST_ENDIAN_STATIC_ASSERT( sizeof(T) == n_bits/8 );
 
     union
     {
@@ -289,30 +276,30 @@ public:
 
     endian_buffer() BOOST_ENDIAN_DEFAULT_CONSTRUCT
 
-    explicit endian_buffer( T val ) BOOST_NOEXCEPT
+    explicit endian_buffer( T val ) noexcept
     {
         boost::endian::endian_store<T, n_bits / 8, Order>( value_, val );
     }
 
 #endif
 
-    endian_buffer& operator=( T val ) BOOST_NOEXCEPT
+    endian_buffer& operator=( T val ) noexcept
     {
         boost::endian::endian_store<T, n_bits / 8, Order>( value_, val );
         return *this;
     }
 
-    value_type value() const BOOST_NOEXCEPT
+    value_type value() const noexcept
     {
         return boost::endian::endian_load<T, n_bits / 8, Order>( value_ );
     }
 
-    unsigned char const * data() const BOOST_NOEXCEPT
+    unsigned char const * data() const noexcept
     {
         return value_;
     }
 
-    unsigned char * data() BOOST_NOEXCEPT
+    unsigned char * data() noexcept
     {
         return value_;
     }
@@ -325,8 +312,8 @@ class endian_buffer<order::native, T, n_bits, align::yes>
 {
 private:
 
-    BOOST_STATIC_ASSERT( (n_bits/8)*8 == n_bits );
-    BOOST_STATIC_ASSERT( sizeof(T) == n_bits/8 );
+    BOOST_ENDIAN_STATIC_ASSERT( (n_bits/8)*8 == n_bits );
+    BOOST_ENDIAN_STATIC_ASSERT( sizeof(T) == n_bits/8 );
 
     T value_;
 
@@ -338,29 +325,29 @@ public:
 
     endian_buffer() BOOST_ENDIAN_DEFAULT_CONSTRUCT
 
-    explicit endian_buffer( T val ) BOOST_NOEXCEPT: value_( val )
+    explicit endian_buffer( T val ) noexcept: value_( val )
     {
     }
 
 #endif
 
-    endian_buffer& operator=( T val ) BOOST_NOEXCEPT
+    endian_buffer& operator=( T val ) noexcept
     {
         value_ = val;
         return *this;
     }
 
-    value_type value() const BOOST_NOEXCEPT
+    value_type value() const noexcept
     {
         return value_;
     }
 
-    unsigned char const * data() const BOOST_NOEXCEPT
+    unsigned char const * data() const noexcept
     {
         return reinterpret_cast< unsigned char const* >( &value_ );
     }
 
-    unsigned char * data() BOOST_NOEXCEPT
+    unsigned char * data() noexcept
     {
         return reinterpret_cast< unsigned char* >( &value_ );
     }
